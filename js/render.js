@@ -1,5 +1,5 @@
 
-function render(fname) {
+function render(fname, divname) {
 	$.ajax({
 		url : fname,
 		success : function (data) {
@@ -8,10 +8,10 @@ function render(fname) {
 			html += createHeaderSection(data.headers);
 			html += createResourceSection(data.resources);
 
-			document.getElementById("zone").innerHTML = html;
+			document.getElementById(divname).innerHTML = html;
 		},
 		error : function () {
-			document.getElementById("zone").innerHTML = 'Error loading RestDoc';
+			document.getElementById(divname).innerHTML = 'Error loading RestDoc';
 		},
 		dataType : 'json'
 	});
@@ -57,17 +57,17 @@ function createResource(res) {
 	var html = '<div class="accordion-group">';
 	html += '<div class="accordion-heading">';
 	html += '<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-res" href="#collapse' + res.id + '">';
-	html += '<h4>' + res.path + ': ' + desc + ' <i class="icon-resize-vertical icon-4x"></i></h4></a></div>\n';
+	html += '<h3>' + res.path + ': ' + desc + ' <i class="icon-resize-vertical icon-4x"></i></h3></a></div>\n';
 	
 	html += '<div id="collapse' + res.id + '" class="accordion-body collapse"><div class="accordion-inner">';
 	
-	html += '<h5>Identifier</h5>';
+	html += '<h4>Identifier</h4>';
 	html += '<p>' + res.id + '</p>';
 	
-	html += '<h5>Parameters</h5>';
+	html += '<h4>Parameters</h4>';
 	html += createParamSection(res.params);
 	
-	html += '<h5>Methods</h5><div class="accordion" id="accordion-'+res.id+'-method">';
+	html += '<h4>Methods</h4><div class="accordion" id="accordion-'+res.id+'-method">';
 	for (var prop in res.methods) {
 		html += createMethodSection(res.id, prop, res.methods[prop]);
 	}
@@ -105,7 +105,7 @@ function createMethodSection(res, name, method) {
 	
 	html += '<div id="collapseMethod' + res+'-'+name + '" class="accordion-body collapse"><div class="accordion-inner">';
 	if (method.headers) {
-		html += createHeaderList('h6', 'Headers', method.headers);	
+		html += createHeaderList('h5', 'Headers', method.headers);	
 	}
 	if (method.accepts) {
 		html += createAccept('Accepts', method.accepts);
@@ -114,17 +114,43 @@ function createMethodSection(res, name, method) {
 		html += createStatusCodes(method.statusCodes);
 	}
 	if (method.response && method.response.headers) {
-		html += createHeaderList('h6', 'Response headers', method.response.headers);	
+		html += createHeaderList('h5', 'Response headers', method.response.headers);	
 	}
 	if (method.response && method.response.types) {
 		html += createAccept('Response types', method.response.types);
+	}
+	if (method.examples) {
+		html += createExamples('Examples', method.examples);
 	}
 	html += '</div></div></div>';
 	return html;
 }
 
+function createExamples(title, examples) {
+	var html = '<h5>'+title+'</h5>\n';
+	for (var i = 0; i < examples.length; i++) {
+	 	var eg = examples[i];
+	 	html += '<div class="well well-small">\n';
+		html += '<h6>'+eg.path+'</h6>';
+		
+		if (eg.headers) {
+			html += '<div>Headers<ul>\n';
+			for (var head in eg.headers) { 
+				html += listItem(head, eg.headers[head]);
+			}
+			html += '</ul></div>';
+		}
+
+		html += '<div><code>' + eg.body + '</code></div>';
+		html += '\n</div>';
+	}
+	html += '';
+	return html;
+}
+
+
 function createAccept(title, accepts) {
-	var html = '<h6>'+title+'</h6><ul>\n';
+	var html = '<h5>'+title+'</h5><ul>\n';
 	for (var i = 0; i < accepts.length; i++) {
 		var acc = accepts[i];
 		var schema = (acc.schema) ? 'Schema: ' + acc.schema : '';
@@ -135,7 +161,7 @@ function createAccept(title, accepts) {
 }
 
 function createStatusCodes(codes) {
-	var html = '<h6>Return codes</h6><ul>\n';
+	var html = '<h5>Return codes</h5><ul>\n';
 	for (var code in codes) { 
 		html += listItem(code, codes[code]);
 	}
